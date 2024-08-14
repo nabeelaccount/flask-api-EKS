@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app
+  namespace: flask-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app
+  template:
+    metadata:
+      labels:
+        app: flask-app
+    spec:
+      serviceAccountName: flask-app
+      containers:
+        - name: flask-app
+          image: nabeelaccount/fask-api-sqlalchemy:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DATABASE_URL
+              value: postgresql://$(PGUSER):$(DATABASE_PASSWORD)@$(PGHOST):$(PGPORT)/postgres
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: password
+                  key: pg-password
+           
+            - name: PGUSER
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-db-conn-cm
+                  key: "postgres-db-user"
+            - name: PGHOST
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-db-conn-cm
+                  key: "postgres-db-host"
+            - name: PGPORT
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-db-conn-cm
+                  key: "postgres-db-port"
+            

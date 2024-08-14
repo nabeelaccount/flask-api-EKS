@@ -3,15 +3,20 @@ apiVersion: rds.services.k8s.aws/v1alpha1
 kind: DBInstance
 metadata:
   name: "postgres-db"
+  namespace: flask-app
 spec:
   allocatedStorage: 20
   dbInstanceClass: db.t4g.micro
   dbInstanceIdentifier: "postgres-db"
   engine: postgres
-  engineVersion: "14"
+  engineVersion: "15"
   masterUsername: "postgres"
-  dbName: transactional
+  dbName: "transactions"
+  dbSubnetGroupName: "rds-postgresql-subnet-group"
+  storageEncrypted: true
+  storageType: "gp3"
   masterUserPassword:
-    namespace: default
-    name: "postgres-password"
+    namespace: flask-app
+    name: "pg-password"
     key: password
+

@@ -140,33 +140,32 @@ resource "kubernetes_service_account" "cluster_secret_store" {
 
 
 
-# resource "kubernetes_manifest" "secrets_manager_secret_store" {
-#   depends_on = [helm_release.external_secrets]
+resource "kubernetes_manifest" "secrets_manager_secret_store" {
+  depends_on = [helm_release.external_secrets]
 
-#   manifest = {
-#     apiVersion = "external-secrets.io/v1beta1"
-#     kind       = "ClusterSecretStore"
-#     metadata = {
-#       name = "cluster-secret-store"
-#     }
-#     spec = {
-#       provider = {
-#         aws = {
-#           service = "SecretsManager"
-#           region  = var.region
-#           auth = {
-#             jwt = {
-#               serviceAccountRef = {
-#                 # Service account name
-#                 name      = kubernetes_service_account.cluster_secret_store.metadata[0].name,
-
-#                 # Serivice account namespace
-#                 namespace = kubernetes_namespace.external_secrets.metadata[0].name
-#               }
-#             }
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
+  manifest = {
+    apiVersion = "external-secrets.io/v1beta1"
+    kind       = "ClusterSecretStore"
+    metadata = {
+      name = "cluster-secret-store"
+    }
+    spec = {
+      provider = {
+        aws = {
+          service = "SecretsManager"
+          region  = var.region
+          auth = {
+            jwt = {
+              serviceAccountRef = {
+                # Service account name
+                name      = kubernetes_service_account.cluster_secret_store.metadata[0].name,
+                # Serivice account namespace
+                namespace = kubernetes_namespace.external_secrets.metadata[0].name
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -45,12 +45,12 @@ resource "aws_iam_policy" "ack" {
               "Effect": "Allow",
               "Sid": "CreateRds"
           },
-          {
-              "Action": "rds:DeleteDBInstance",
-              "Resource": "*",
-              "Effect": "Deny",
-              "Sid": "DenyDeleteRds"
-          }
+          # {
+          #     "Action": "rds:DeleteDBInstance",
+          #     "Resource": "*",
+          #     "Effect": "Deny",
+          #     "Sid": "DenyDeleteRds"
+          # }
       ]
   })
 }
@@ -91,24 +91,23 @@ resource "helm_release" "ack_rds" {
 }
 
 
-# resource "kubectl_manifest" "secrets_manager_secret_store" {
-#     yaml_body = <<YAML
-# apiVersion: rds.services.k8s.aws/v1alpha1
-# kind: DBSubnetGroup
-# metadata:
-#   name: rds-postgresql-subnet-group
-# spec:
-#   name: rds-postgresql-subnet-group
-#   description: RDS for app in EKS
-#   subnetIDs:
-#   - ${aws_subnet.rds_zone1.id}
-#   - ${aws_subnet.rds_zone2.id}
-#   - ${aws_subnet.rds_zone3.id}
-#   tags:
-#     - key: stage
-#       value: development
-#     - key: owner
-#       value: dev
-# YAML
-# }
-
+resource "kubectl_manifest" "db_sg" {
+    yaml_body = <<-YAML
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBSubnetGroup
+metadata:
+  name: rds-postgresql-subnet-group
+spec:
+  name: rds-postgresql-subnet-group
+  description: RDS for app in EKS
+  subnetIDs:
+  - ${aws_subnet.rds_zone1.id}
+  - ${aws_subnet.rds_zone2.id}
+  - ${aws_subnet.rds_zone3.id}
+  tags:
+    - key: stage
+      value: production
+    - key: owner
+      value: production
+YAML
+}
