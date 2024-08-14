@@ -1,0 +1,51 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-db-conn-cm
+data: {}
+---
+apiVersion: services.k8s.aws/v1alpha1
+kind: FieldExport
+metadata:
+  name: postgres-db-host
+spec:
+  to:
+    name: postgres-db-conn-cm
+    kind: configmap
+  from:
+    path: ".status.endpoint.address"
+    resource:
+      group: rds.services.k8s.aws
+      kind: DBInstance
+      name: postgres-db
+---
+apiVersion: services.k8s.aws/v1alpha1
+kind: FieldExport
+metadata:
+  name: postgres-db-port
+spec:
+  to:
+    name: postgres-db-conn-cm
+    kind: configmap
+  from:
+    path: ".status.endpoint.port"
+    resource:
+      group: rds.services.k8s.aws
+      kind: DBInstance
+      name: postgres-db
+---
+apiVersion: services.k8s.aws/v1alpha1
+kind: FieldExport
+metadata:
+  name: postgres-db-user
+spec:
+  to:
+    name: postgres-db-conn-cm
+    kind: configmap
+  from:
+    path: ".spec.masterUsername"
+    resource:
+      group: rds.services.k8s.aws
+      kind: DBInstance
+      name: postgres-db

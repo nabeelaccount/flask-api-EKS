@@ -1,0 +1,18 @@
+---
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBInstance
+metadata:
+  name: "postgres-db"
+spec:
+  allocatedStorage: 20
+  dbInstanceClass: db.t4g.micro
+  dbInstanceIdentifier: "postgres-db"
+  engine: postgres
+  engineVersion: "14"
+  masterUsername: "postgres"
+  dbName: transactional
+  masterUserPassword:
+    namespace: default
+    name: "postgres-password"
+    key: password
+

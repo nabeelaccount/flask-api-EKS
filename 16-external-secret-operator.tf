@@ -13,34 +13,8 @@ data "aws_iam_openid_connect_provider" "oidc_provider" {
   url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
 }
 
-resource "kubernetes_namespace" "external_secrets" {
-  metadata {
-    name = "external-secrets"
-  }
-}
-
-# Deployes the ES Operator and the Secret Store
-resource "helm_release" "external_secrets" {
-  name       = "external-secrets"
-  namespace  = kubernetes_namespace.external_secrets.metadata[0].name
-  repository = "https://charts.external-secrets.io"
-  chart      = "external-secrets"
-  version    = "0.9.20"
-
-  create_namespace = false
-
-  set {
-    name  = "installCRDs"
-    value = "true"
-  }
-  set {
-    name  = "webhook.port"
-    value = "9443"
-  }
-}
-
 ###########################################################################################
-# Permission
+# External Secret
 ###########################################################################################
 
 # Associate OIDC with EKS Service Account
@@ -93,6 +67,33 @@ resource "aws_iam_role_policy_attachment" "secrets_manager_policy_attachment" {
 }
 
 
+resource "kubernetes_namespace" "external_secrets" {
+  metadata {
+    name = "external-secrets"
+  }
+}
+
+# Deployes the ES Operator and the Secret Store
+resource "helm_release" "external_secrets" {
+  name       = "external-secrets"
+  namespace  = kubernetes_namespace.external_secrets.metadata[0].name
+  repository = "https://charts.external-secrets.io"
+  chart      = "external-secrets"
+  version    = "0.9.20"
+
+  create_namespace = false
+
+  set {
+    name  = "installCRDs"
+    value = "true"
+  }
+  set {
+    name  = "webhook.port"
+    value = "9443"
+  }
+}
+
+
 ##########################################################################################
 #  Create a Cluster Secret Store
 ###########################################################################################
@@ -139,33 +140,33 @@ resource "kubernetes_service_account" "cluster_secret_store" {
 
 
 
-resource "kubernetes_manifest" "secrets_manager_secret_store" {
-  depends_on = [helm_release.external_secrets]
+# resource "kubernetes_manifest" "secrets_manager_secret_store" {
+#   depends_on = [helm_release.external_secrets]
 
-  manifest = {
-    apiVersion = "external-secrets.io/v1beta1"
-    kind       = "ClusterSecretStore"
-    metadata = {
-      name = "cluster-secret-store"
-    }
-    spec = {
-      provider = {
-        aws = {
-          service = "SecretsManager"
-          region  = var.region
-          auth = {
-            jwt = {
-              serviceAccountRef = {
-                # Service account name
-                name      = kubernetes_service_account.cluster_secret_store.metadata[0].name,
+#   manifest = {
+#     apiVersion = "external-secrets.io/v1beta1"
+#     kind       = "ClusterSecretStore"
+#     metadata = {
+#       name = "cluster-secret-store"
+#     }
+#     spec = {
+#       provider = {
+#         aws = {
+#           service = "SecretsManager"
+#           region  = var.region
+#           auth = {
+#             jwt = {
+#               serviceAccountRef = {
+#                 # Service account name
+#                 name      = kubernetes_service_account.cluster_secret_store.metadata[0].name,
 
-                # Serivice account namespace
-                namespace = kubernetes_namespace.external_secrets.metadata[0].name
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
+#                 # Serivice account namespace
+#                 namespace = kubernetes_namespace.external_secrets.metadata[0].name
+#               }
+#             }
+#           }
+#         }
+#       }
+#     }
+#   }
+# }
